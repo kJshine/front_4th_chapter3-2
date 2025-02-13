@@ -29,18 +29,57 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const saveEvent = async (eventData: Event | EventForm) => {
     try {
       let response;
-      if (editing) {
-        response = await fetch(`/api/events/${(eventData as Event).id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
-        });
+
+      // if (editing) {
+      //   response = await fetch(`/api/events/${(eventData as Event).id}`, {
+      //     method: 'PUT',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify(eventData),
+      //   });
+      // } else {
+      //   response = await fetch('/api/events', {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify(eventData),
+      //   });
+      // }
+
+      // 반복 일정인 경우
+      if (!editing) {
+        if (eventData.repeat.type !== 'none') {
+          // POST /api/events-list 사용
+          response = await fetch('/api/events-list', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              events: [eventData], // events 배열로 감싸기
+            }),
+          });
+        } else {
+          // POST /api/events 사용
+          response = await fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+          });
+        }
       } else {
-        response = await fetch('/api/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
-        });
+        if (eventData.repeat.type !== 'none') {
+          // PUT /api/events-list 사용
+          response = await fetch('/api/events-list', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              events: [eventData], // events 배열로 감싸기
+            }),
+          });
+        } else {
+          response = await fetch(`/api/events/${(eventData as Event).id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+          });
+        }
       }
 
       if (!response.ok) {
